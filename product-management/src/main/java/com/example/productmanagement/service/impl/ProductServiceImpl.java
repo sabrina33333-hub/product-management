@@ -1,0 +1,153 @@
+package com.example.productmanagement.service.impl;
+
+import com.example.productmanagement.dto.request.ProductRequest;
+import com.example.productmanagement.dto.request.VendorRequest;
+import com.example.productmanagement.entity.Category;
+import com.example.productmanagement.entity.Product;
+import com.example.productmanagement.entity.Vendor;
+import com.example.productmanagement.repository.CategoryRepository;
+import com.example.productmanagement.repository.ProductRepository;
+import com.example.productmanagement.repository.VendorRepository;
+import com.example.productmanagement.service.ProductService;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+
+//import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import lombok.RequiredArgsConstructor; 
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor 
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private final Integer LOW_STOCK_THRESHOLD = 10;
+    private final CategoryRepository categoryRepository;
+    private final VendorRepository vendorRepository;
+
+//    // @Autowired
+//     public ProductServiceImpl(ProductRepository productRepository) {
+//         this.productRepository = productRepository;
+        
+//     }
+    
+    
+
+    @Override
+    @Transactional(readOnly = true) // 查詢操作，設為 readOnly 可優化效能
+    public List<Product> findAll() {
+        List<Product> products = productRepository.findAll();
+        // 也可以在這裡遍歷檢查所有產品庫存
+        // products.forEach(this::checkStockLevel);
+        return products;
+    }
+
+    @Override
+    public Optional<Product> findByIdForForm(Integer id) {
+        return productRepository.findByIdWithAssociations(id);
+    }
+
+    @Override
+    @Transactional 
+    public Product createProduct(ProductRequest productRequest) {
+       // 檢查商品名稱是否重複
+       // 1. 根據 DTO 中的 ID，從資料庫查找完整的 Category 物件
+        Category category = categoryRepository.findById(productRequest.categoryId())
+                .orElseThrow(() -> new EntityNotFoundException("儲存商品失敗：找不到分類 ID " + productRequest.categoryId()));
+
+        // 2. 根據 DTO 中的 ID，從資料庫查找完整的 Vendor 物件
+        Vendor vendor = vendorRepository.findById(productRequest.vendorId())
+                .orElseThrow(() -> new EntityNotFoundException("儲存商品失敗：找不到供應商 ID " + productRequest.vendorId()));
+
+
+        // 將 DTO 轉換為 Entity
+        Product newProduct = new Product();
+        newProduct.setName(productRequest.name());
+        newProduct.setDescription(productRequest.description());
+        newProduct.setPrice(productRequest.price());
+        newProduct.setCost(productRequest.cost());
+        newProduct.setStockQuantity(productRequest.stockQuantity());
+        newProduct.setImageUrl(productRequest.imageUrl());
+        
+    
+        newProduct.setCategory(category);
+        newProduct.setVendor(vendor);
+
+        return productRepository.save(newProduct);
+    }
+
+    @Override
+    @Transactional
+    public Product updateProduct(Integer id, ProductRequest productRequest){
+        // 1. 查找現有的商品，如果不存在則拋出例外
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("嘗試更新不存在的商品，ID: {}", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "找不到 ID 為 " + id + " 的商品");
+                });
+
+        // 2. 檢查更新的商品名稱是否與其他商品重複
+        productRepository.findByName(productRequest.name()).ifPresent(p -> {
+            if (!p.getId().equals(id)) { // 如果找到的商品不是當前正在更新的商品
+                log.warn("嘗試將商品名稱更新為已存在的名稱: {}", productRequest.name());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "商品名稱 '" + productRequest.name() + "' 已被其他商品使用");
+            }
+        });
+
+        // 3. 將 DTO 的資料更新到 Entity 中
+        existingProduct.setName(productRequest.name());
+        existingProduct.setDescription(productRequest.description());
+        existingProduct.setPrice(productRequest.price());
+        existingProduct.setStockQuantity(productRequest.stockQuantity());
+       
+
+        // 4. 儲存 (在 @Transactional 中，這一步有時可以省略，但明確寫出更清晰)
+        return productRepository.save(existingProduct);
+    }
+
+    @Override
+    @Transactional // 刪除操作，啟用交易管理
+    public void deleteById(Integer id) {
+       // [建議 1] 確認 product 是否存在，如果不存在可以拋出例外或記錄 log
+       if (!productRepository.existsById(id)) {
+           log.warn("嘗試刪除不存在的商品，ID: {}", id);
+           // 或者可以拋出例外
+           // throw new ResponseStatusException(HttpStatus.NOT_FOUND, "找不到 ID 為 " + id + " 的商品");
+       }
+       productRepository.deleteById(id);
+   }
+
+ 
+
+    private void checkStockLevel(Product product) {
+        if (product.getStockQuantity() != null && product.getStockQuantity() < LOW_STOCK_THRESHOLD) {
+            log.warn("庫存警告：商品 '{}' (ID: {}) 的庫存僅剩 {}，已低於安全閾值 {}！",
+                    product.getName(),
+                    product.getId(),
+                    product.getStockQuantity(),
+                    LOW_STOCK_THRESHOLD);
+        }
+    }
+
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Product> getProductsByCategoryId(Integer categoryId) {
+        return productRepository.findByCategoryId(categoryId);
+    }
+
+
+    
+}

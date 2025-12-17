@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content" class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">收益分析報告</h1>
+        <a th:href="@{/dashboard}" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200">返回儀表板</a>
+    </div>
+
+    <!-- ==================== 【【【 全新的篩選控制面板！ 】】】 ==================== -->
+    <form th:action="@{/analytics/report}" method="get" class="bg-white p-4 rounded-xl shadow mb-8" >
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            
+            <!-- 日期區間：開始 -->
+            <div>
+                <label for="startDate" class="block text-sm font-medium text-gray-700">開始日期</label>
+                <input type="date" id="startDate" name="startDate" th:value="${currentStartDate!= null ? #temporals.format(currentStartDate, 'yyyy-MM-dd') : ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <!-- 日期區間：結束 -->
+            <div>
+                <label for="endDate" class="block text-sm font-medium text-gray-700">結束日期</label>
+                <input type="date" id="endDate" name="endDate" th:value="${currentEndDate!= null ? #temporals.format(currentEndDate, 'yyyy-MM-dd') : ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <!-- 訂單狀態篩選 -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">訂單狀態</label>
+                <select id="status" name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="" th:selected="${currentStatus == ''}">所有狀態</option>
+                    <!-- 動態生成所有枚舉選項 -->
+                    <option th:each="enumStatus : ${T(com.example.productmanagement.model.OrderStatus).values()}"
+                            th:value="${enumStatus.name()}"
+                            th:text="${enumStatus.displayName}"
+                            th:selected="${enumStatus.name() == currentStatus}">
+                    </option>
+                </select>
+                
+            </div>
+               
+            <!-- 提交按鈕 -->
+            <div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    篩選報告
+                </button>
+            </div>
+        </div>
+    </form>
+    <!-- ============================================================================== -->
+            
+
+    <!-- KPI 數據卡片 (Grid 佈局) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- 總收入 -->
+        <div class="bg-white p-6 rounded-xl shadow">
+            <div class="text-sm font-medium text-gray-500">總收入 (REVENUE)</div>
+            <div class="text-3xl font-bold text-green-600 mt-2" th:text="${#numbers.formatCurrency(summary.totalRevenue)}">$0.00</div>
+        </div>
+        <!-- 總成本 -->
+        <div class="bg-white p-6 rounded-xl shadow">
+            <div class="text-sm font-medium text-gray-500">總成本 (COST)</div>
+            <div class="text-3xl font-bold text-orange-500 mt-2" th:text="${#numbers.formatCurrency(summary.totalCost)}">$0.00</div>
+        </div>
+        <!-- 淨利潤 -->
+        <div class="bg-gray-800 text-white p-6 rounded-xl shadow">
+            <div class="text-sm font-medium text-gray-300">淨利潤 (PROFIT)</div>
+            <div class="text-3xl font-bold mt-2" th:text="${#numbers.formatCurrency(summary.netProfit)}">$0.00</div>
+        </div>
+    </div>
+
+    <!-- 商品獲利能力列表 -->
+    <h2 class="text-xl font-bold text-gray-800 mb-4">商品獲利明細</h2>
+    <div class="bg-white rounded-xl shadow overflow-x-auto">
+        <div th:if="${productProfitability.isEmpty()}" class="p-6 text-center text-gray-500">
+            在指定條件下，尚無銷售數據可供分析。
+        </div>
+        <table class="min-w-full" th:unless="${productProfitability.isEmpty()}">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">商品名稱</th>
+                    <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">銷售數量</th>
+                    <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">總收入</th>
+                    <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">平均成本</th>
+                    <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">總成本</th>
+                    <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">總利潤</th>
+                    
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                <tr th:each="item : ${productProfitability}" class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="py-4 px-6 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${item.productName}">範例商品</td>
+                    <td class="py-4 px-6 text-right whitespace-nowrap text-sm text-gray-500" th:text="${item.unitsSold}">0</td>
+                    <td class="py-4 px-6 text-right whitespace-nowrap text-sm text-green-600" th:text="${#numbers.formatCurrency(item.totalRevenue)}">$0.00</td>
+                    <td class="py-4 px-6 text-right whitespace-nowrap text-sm font-semibold text-gray-800" th:text="${#numbers.formatCurrency(item.averageCost)}">$0.00</td>
+                    <td class="py-4 px-6 text-right whitespace-nowrap text-sm text-orange-500" th:text="${#numbers.formatCurrency(item.totalCost)}">$0.00</td>
+                    <td class="py-4 px-6 text-right whitespace-nowrap text-sm font-semibold text-gray-800" th:text="${#numbers.formatCurrency(item.profit)}">$0.00</td>
+                </tr>    
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

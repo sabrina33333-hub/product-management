@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單列表</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+   <div th:fragment="content" class="container mx-auto">
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">訂單列表</h1>
+
+    <!-- 狀態篩選表單 (Tailwind 樣式) -->
+    <form th:action="@{/orders}" method="get" class="bg-white p-4 rounded-lg shadow mb-6 flex items-end gap-4">
+        <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">篩選訂單狀態:</label>
+            <select id="status" name="status" class="mt-1 block w-48 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <option value="">所有狀態</option>
+                <option value="PENDING" th:selected="${currentStatus == 'PENDING'}">待處理</option>
+                <option value="PROCESSING" th:selected="${currentStatus == 'PROCESSING'}">處理中</option>
+                <option value="SHIPPED" th:selected="${currentStatus == 'SHIPPED'}">已出貨</option>
+                <option value="DELIVERED" th:selected="${currentStatus == 'DELIVERED'}">已送達</option>
+                <option value="COMPLETED" th:selected="${currentStatus == 'COMPLETED'}">已完成</option>
+                <option value="CANCELLED" th:selected="${currentStatus == 'CANCELLED'}">已取消</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">篩選</button>
+        </div>
+        <div>
+         <a th:href="@{/orders/new-order}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+        <i class="fas fa-plus mr-2"></i>新增訂單
+         </a>
+        </div>
+
+
+    </form>
+
+    <!-- 訂單表格 (Tailwind 樣式) -->
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <div th:if="${#lists.isEmpty(orders)}" class="p-6 text-center text-gray-500">
+            沒有找到符合條件的訂單。
+        </div>
+
+        <table class="min-w-full divide-y divide-gray-200" th:unless="${#lists.isEmpty(orders)}">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">訂單編號</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">顧客名稱</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">訂單日期</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">總金額</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">狀態</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="order : ${orders}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${order.orderId}">#1001</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${order.customer.customerName}">王大明</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm')}">2025-11-28 14:30</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right" th:text="'NT$ ' + ${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT')}">NT$ 1,500</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <!-- 這些是 Tailwind 的狀態標籤 -->
+                        <span th:switch="${order.status.name()}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                            <span th:case="'PENDING'"      class="bg-yellow-100 text-yellow-800">待處理</span>
+                            <span th:case="'PROCESSING'"   class="bg-blue-100 text-blue-800">處理中</span>
+                            <span th:case="'SHIPPED'"      class="bg-indigo-100 text-indigo-800">已出貨</span>
+                            <span th:case="'DELIVERED'"    class="bg-green-100 text-green-800">已送達</span>
+                            <span th:case="'COMPLETED'"    class="bg-green-100 text-green-800">已完成</span>
+                            <span th:case="'CANCELLED'"    class="bg-red-100 text-red-800">已取消</span>
+                            <span th:case="*"            class="bg-gray-100 text-gray-800" th:text="${order.status}">未知</span>
+                        </span> 
+                        <form th:action="@{/orders/{id}/status(id=${order.orderId})}" method="post">
+                        <select name="status">
+                            <option th:each="s : ${T(com.example.productmanagement.model.OrderStatus).values()}"
+                                    th:value="${s}"
+                                    th:text="${s.displayName}"
+                                    th:selected="${s == order.status}">
+                            </option>
+                        </select>
+                        <button type="submit">更新</button>
+                    </form>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                        <a th:href="@{/orders/{id}(id=${order.orderId})}" class="text-indigo-600 hover:text-indigo-900">查看詳情</a>
+                    
+                    
+                    
+                    </td>
+
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

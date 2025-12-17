@@ -1,0 +1,149 @@
+<!-- In: templates/orders/new-order.html -->
+<div th:fragment="content" class="container-fluid" x-data="orderForm()">
+
+    <!-- 頁面標題 -->
+    <h1 class="h3 mb-4 text-gray-800">建立新訂單</h1>
+
+    <!-- 使用 Card 元件來包裝表單，使其更美觀 -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">訂單詳細資訊</h6>
+        </div>
+        <div class="card-body">
+            <!-- 將 th:object 移到 form 標籤上 -->
+            <form th:action="@{/orders}" th:object="${orderRequest}" method="post" @submit.prevent="submitForm($el)">
+
+                <!-- 訂單資訊區塊 -->
+                <h5 class="mb-3">顧客資訊</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="customerName" class="form-label">顧客名稱</label>
+                        <input type="text" id="customerName" class="form-control" th:field="*{customerName}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="customerEmail" class="form-label">顧客信箱</label>
+                        <input type="email" id="customerEmail" class="form-control" th:field="*{customerEmail}" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="shippingAddress" class="form-label">運送地址</label>
+                    <input type="text" id="shippingAddress" class="form-control" th:field="*{shippingAddress}" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="orderDate" class="form-label">訂單日期</label>
+                        <input type="date" id="orderDate" class="form-control" th:field="*{orderDate}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="status" class="form-label">訂單狀態</label>
+                        <select id="status" class="form-control" th:field="*{status}">
+                            <option th:each="s : ${allStatuses}" th:value="${s}" th:text="${s.displayName}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- 商品列表區塊 -->
+                <h5 class="mb-3">商品列表</h5>
+                    <template x-for="(item, index) in items" :key="index">
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-7">
+                                <label class="form-label small">選擇產品</label>
+                                <!-- 【【【 核心修改 1 】】】 @change 事件呼叫 updatePrice -->
+                                <select class="form-control" x-model="item.productId" @change="updatePrice(index, $event)" :name="'items[' + index + '].productId'" required>
+                                    <option value="" disabled>-- 請選擇一項商品 --</option>
+                                    <option th:each="p : ${allProducts}"
+                                            th:value="${p.id}"
+                                            th:text="${p.name + ' - NT$ ' + #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}"
+                                            th:data-price="${p.price}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">數量</label>
+                                <!-- 【【【 核心修改 2 】】】 @input 事件呼叫 calculateTotal -->
+                                <input type="number" class="form-control" x-model.number="item.quantity" @input="calculateTotal" :name="'items[' + index + '].quantity'" min="1" required>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-icon-split btn-sm" @click="removeItem(index)" x-show="items.length > 1">
+                                    <span class="icon text-white-50"><i class="fas fa-trash"></i></span>
+                                    <span class="text">移除</span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+
+                <!-- 新增商品按鈕 -->
+                <button type="button" class="btn btn-info btn-icon-split mt-2" @click="addItem()">
+                    <span class="icon text-white-50"><i class="fas fa-plus"></i></span>
+                    <span class="text">新增商品</span>
+                </button>
+
+                <hr class="my-4">
+
+                <!-- 總金額 & 送出按鈕 -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <h3 class="font-weight-bold text-gray-800">訂單總額: <span class="text-danger" x-text="'NT$ ' + totalAmount"></span></h3>
+                    <div>
+                        <!-- 【新增】返回列表按鈕 -->
+                        <a th:href="@{/orders}" class="btn btn-secondary btn-lg mr-2">返回列表</a>
+                        <!-- 【美化】送出訂單按鈕 -->
+                        <button type="submit" class="btn btn-primary btn-lg">送出訂單</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alpine.js 腳本，包含優化 -->
+    <script>
+        function orderForm() {
+        return {
+            items: [{ productId: '', quantity: 1, price: 0 }], // 【優化】在 item 中直接記錄價格
+            totalAmount: '0.00',
+            
+            init() {
+                this.calculateTotal();
+            },
+            
+            addItem() {
+                this.items.push({ productId: '', quantity: 1, price: 0 });
+            },
+
+            removeItem(index) {
+                if (this.items.length > 1) {
+                    this.items.splice(index, 1);
+                    this.calculateTotal(); // 移除後也要重新計算
+                }
+            },
+
+            // 【核心修改】當選擇商品時，更新該項目的價格
+            updatePrice(index, event) {
+                const selectedOption = event.target.options[event.target.selectedIndex];
+                const price = selectedOption.dataset.price ? parseFloat(selectedOption.dataset.price) : 0;
+                this.items[index].price = price;
+                this.calculateTotal();
+            },
+
+            // 【核心修改】計算邏輯變得更簡單
+            calculateTotal() {
+                let total = 0;
+                this.items.forEach(item => {
+                    if (item.price && item.quantity > 0) {
+                        total += item.price * item.quantity;
+                    }
+                });
+                this.totalAmount = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            },
+                
+                submitForm(form) {
+                    // 在送出前可以做最後的驗證
+                    console.log('Form submitted with items:', JSON.stringify(this.items));
+                    form.submit();
+                }
+            }
+        }
+    </script>
+</div>

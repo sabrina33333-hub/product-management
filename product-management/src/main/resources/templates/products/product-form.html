@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ===================================================================== -->
+<!-- This is the main content fragment for the New/Edit Product Form page -->
+<!-- ===================================================================== -->
+<!-- In: src/main/resources/templates/products/product-form.html (或您的表單檔案) -->
+
+<div th:fragment="content" class="max-w-2xl mx-auto">
+    
+    <h1 class="text-2xl font-bold text-gray-800 mb-6" th:text="*{id == null} ? '新增商品' : '編輯商品'">商品表單</h1>
+
+    <div class="bg-white p-8 rounded-lg shadow-md">
+        <!-- 【【【 重要：th:object="${product}" 確保表單和後端物件綁定 】】】 -->
+        <form th:action="@{/products/save}" th:object="${product}" method="post" class="space-y-6">
+            
+            <input type="hidden" th:field="*{id}" />
+
+            <!-- Product Name -->
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">名稱</label>
+                <input type="text" th:field="*{name}" 
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+
+            <!-- 【【【 核心修改 1：新增 Category 下拉選單 】】】 -->
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">商品分類</label>
+                <select id="category" name="category" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <option value="">-- 請選擇分類 --</option>
+                    <option th:each="cat : ${allCategories}" 
+                            th:value="${cat.id}" 
+                            th:text="${cat.name}" 
+                            th:selected="${product.category != null && product.category.id == cat.id}">
+                    </option>
+                </select>
+           
+            <!-- 【【【 核心修改 2：新增 Vendor 下拉選單 】】】 -->
+            <div>
+                <label for="vendor" class="block text-sm font-medium text-gray-700">供應商</label>
+                    <select id="vendor" name="vendor" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                        <option value="">-- 請選擇供應商 --</option>
+                        <option th:each="ven : ${allVendors}" 
+                                th:value="${ven.vendorId}" 
+                                th:text="${ven.storeName}"
+                                th:selected="${product.vendor != null && product.vendor.vendorId == ven.vendorId}">
+                        </option>
+                </select>
+            </div>
+
+            <!-- Price -->
+            <div>
+                <label for="price" class="block text-sm font-medium text-gray-700">售價</label>
+                <input type="text" th:field="*{price}" step="0.01" 
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+
+            <!-- 【【【 核心修改 3：新增 Cost (成本) 輸入框 】】】 -->
+            <div>
+                <label for="cost" class="block text-sm font-medium text-gray-700">成本 (進貨價)</label>
+                <input type="text" id="cost" th:field="*{cost}" placeholder="例如：99.50" step="0.01" 
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+            
+            <!-- Stock Quantity -->
+            <div>
+                <label for="stockQuantity" class="block text-sm font-medium text-gray-700">數量</label>
+                <input type="number" th:field="*{stockQuantity}" 
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">描述</label>
+                <textarea th:field="*{description}" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end pt-4 space-x-3">
+                <a th:href="@{/products}" class="bg-gray-200 ...">返回列表</a>
+                <button type="submit" class="bg-blue-500 ...">儲存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+</body>
+</html>

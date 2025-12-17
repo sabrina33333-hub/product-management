@@ -1,33 +1,43 @@
-HELP.md
+# =========================================
+# .gitignore for a standard Spring Boot Maven project
+# =========================================
+
+# Compiled class files
+*.class
+
+# Log files and directories
+logs/
+*.log
+
+# Maven build directory
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# IDE configuration files
+.idea/
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+*.iws
 .vscode/
+
+# macOS system files
+.DS_Store
+
+# Operating System files
+Thumbs.db
+ehthumbs.db
+
+# NetBeans project files
+nbproject/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Eclipse project files
+.project
+.classpath
+.settings/
+
+# Local env files
+.env

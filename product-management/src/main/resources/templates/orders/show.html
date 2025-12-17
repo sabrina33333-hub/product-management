@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單詳情</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div th:fragment="content" class="container mx-auto">
+
+    <!-- 頁面標題和返回按鈕 -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800" th:text="'訂單詳情 #' + ${order.orderId}">訂單詳情 #1001</h1>
+        <a th:href="@{/orders}" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200">返回列表</a>
+    </div>
+
+    <!-- 主內容區域 (使用 Grid 佈局) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 左側區域 (佔 2 個欄位) -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            <!-- 商品項目卡片 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-4 border-b">
+                    <h2 class="text-lg font-semibold text-gray-700">商品項目</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">商品</th>
+                                <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">單價</th>
+                                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">數量</th>
+                                <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">小計</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr th:each="item : ${order.orderItems}">
+                                <td class="py-4 px-6 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${item.product.name}">商品A</td>
+                                <td class="py-4 px-6 text-right whitespace-nowrap text-sm text-gray-500" th:text="${#numbers.formatCurrency(item.purchasePrice)}"></td>
+                                <td class="py-4 px-6 text-center whitespace-nowrap text-sm text-gray-500" th:text="${item.quantity}"></td>
+                                <td class="py-4 px-6 text-right whitespace-nowrap text-sm font-semibold text-gray-800" th:text="${#numbers.formatCurrency(item.purchasePrice * item.quantity)}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側區域 (佔 1 個欄位) -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+            <!-- 訂單摘要卡片 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-4 border-b">
+                    <h2 class="text-lg font-semibold text-gray-700">訂單摘要</h2>
+                </div>
+                <div class="p-4 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">訂單日期:</span>
+                        <span class="font-medium text-gray-800" th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm')}"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500">訂單狀態:</span>
+                        <span th:switch="${order.status.name()}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                            <span th:case="'PENDING'"    class="bg-yellow-100 text-yellow-800">待處理</span>
+                            <span th:case="'PROCESSING'" class="bg-blue-100 text-blue-800">處理中</span>
+                            <span th:case="'SHIPPED'"    class="bg-indigo-100 text-indigo-800">已出貨</span>
+                            <span th:case="'DELIVERED'"  class="bg-green-100 text-green-800">已送達</span>
+                            <span th:case="'COMPLETED'"  class="bg-green-100 text-green-800">已完成</span>
+                            <span th:case="'CANCELLED'"  class="bg-red-100 text-red-800">已取消</span>
+                            <span th:case="*"          class="bg-gray-100 text-gray-800" th:text="${order.status}">未知</span>
+                        </span>
+                    </div>
+                    <div class="pt-2 border-t flex justify-between items-baseline">
+                        <span class="text-base font-semibold text-gray-600">訂單總金額:</span>
+                        <span class="text-xl font-bold text-red-600" th:text="${#numbers.formatCurrency(order.totalAmount)}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 顧客與運送資訊卡片 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-4 border-b">
+                    <h2 class="text-lg font-semibold text-gray-700">顧客與運送資訊</h2>
+                </div>
+                <div class="p-4 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">顧客名稱:</span>
+                        <span class="font-medium text-gray-800" th:text="${order.customer.customerName}"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">聯絡信箱:</span>
+                        <span class="font-medium text-gray-800" th:text="${order.customer.email}"></span>
+                    </div>
+                    <div class="pt-2 border-t">
+                        <span class="text-gray-500">運送地址:</span>
+                        <p class="font-medium text-gray-800 mt-1" th:text="${order.customer.address} ?: '未提供地址'"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
