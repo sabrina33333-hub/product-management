@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.example.productmanagement.model.OrderStatus;
 
 // --- Lombok 註解 ---
-@Getter
+@Getter 
 @Setter
 @NoArgsConstructor 
 @EntityListeners(AuditingEntityListener.class) 

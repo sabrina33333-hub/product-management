@@ -1,7 +1,7 @@
 package com.example.productmanagement.service.impl;
 
 import com.example.productmanagement.dto.request.ProductRequest;
-import com.example.productmanagement.dto.request.VendorRequest;
+
 import com.example.productmanagement.entity.Category;
 import com.example.productmanagement.entity.Product;
 import com.example.productmanagement.entity.Vendor;
@@ -13,16 +13,13 @@ import com.example.productmanagement.service.ProductService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
-//import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import lombok.RequiredArgsConstructor; 
-
 import java.util.List;
 import java.util.Optional;
 
@@ -48,8 +45,6 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true) // 查詢操作，設為 readOnly 可優化效能
     public List<Product> findAll() {
         List<Product> products = productRepository.findAll();
-        // 也可以在這裡遍歷檢查所有產品庫存
-        // products.forEach(this::checkStockLevel);
         return products;
     }
 
@@ -103,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
                 log.warn("嘗試將商品名稱更新為已存在的名稱: {}", productRequest.name());
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "商品名稱 '" + productRequest.name() + "' 已被其他商品使用");
             }
-        });
+        }); //先找商品名字 再核對ID
 
         // 3. 將 DTO 的資料更新到 Entity 中
         existingProduct.setName(productRequest.name());
@@ -118,27 +113,33 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional // 刪除操作，啟用交易管理
-    public void deleteById(Integer id) {
-       // [建議 1] 確認 product 是否存在，如果不存在可以拋出例外或記錄 log
-       if (!productRepository.existsById(id)) {
-           log.warn("嘗試刪除不存在的商品，ID: {}", id);
-           // 或者可以拋出例外
-           // throw new ResponseStatusException(HttpStatus.NOT_FOUND, "找不到 ID 為 " + id + " 的商品");
-       }
-       productRepository.deleteById(id);
+    public void softDeleteProduct(Integer id) {
+       Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("找不到商品ID"));
+        product.setActive(false); // 將狀態設為下架
+        productRepository.save(product);
    }
-
  
-
-    private void checkStockLevel(Product product) {
-        if (product.getStockQuantity() != null && product.getStockQuantity() < LOW_STOCK_THRESHOLD) {
-            log.warn("庫存警告：商品 '{}' (ID: {}) 的庫存僅剩 {}，已低於安全閾值 {}！",
-                    product.getName(),
-                    product.getId(),
-                    product.getStockQuantity(),
-                    LOW_STOCK_THRESHOLD);
-        }
+    @Override
+    @Transactional
+    public void relistProduct(Integer id){
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("找不到商品ID"));
+        product.setActive(true); // 將狀態設為下架
+        productRepository.save(product);
     }
+    
+    
+    
+    // private void checkStockLevel(Product product) {
+    //     if (product.getStockQuantity() != null && product.getStockQuantity() < LOW_STOCK_THRESHOLD) {
+    //         log.warn("庫存警告：商品 '{}' (ID: {}) 的庫存僅剩 {}，已低於安全閾值 {}！",
+    //                 product.getName(),
+    //                 product.getId(),
+    //                 product.getStockQuantity(),
+    //                 LOW_STOCK_THRESHOLD);
+    //     }
+    // }
 
     
 

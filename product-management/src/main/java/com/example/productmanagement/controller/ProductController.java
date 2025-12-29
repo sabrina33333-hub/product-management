@@ -6,8 +6,6 @@ import com.example.productmanagement.exception.ResourceNotFoundException;
 import com.example.productmanagement.service.ProductService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +40,7 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
         Optional<Product> productOptional = productService.findByIdForForm(id);
         
-        // 使用 Lambda 表達式來處理 Optional
+        
         return productOptional
                 .map(product -> ResponseEntity.ok(product)) // 如果找到，回傳 200 OK 和產品資料
                 .orElse(ResponseEntity.notFound().build()); // 如果找不到，回傳 404 Not Found
@@ -70,7 +68,6 @@ public class ProductController {
      @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable Integer id,
-            // [修正] @RequestBody 接收的應該是 ProductRequest DTO，而不是 Product 實體
             @RequestBody ProductRequest productRequest) {
         
         try {
@@ -91,14 +88,14 @@ public class ProductController {
     // --- D: Delete (刪除) ---
     // HTTP Method: DELETE
     // URL: /api/products/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
-        // 先檢查是否存在，這樣才能給出更精確的回應
-        if (productService.findByIdForForm(id).isPresent()) {
-            productService.deleteById(id);
-            return ResponseEntity.noContent().build(); // 回傳 204 No Content，表示成功刪除
-        } else {
-            return ResponseEntity.notFound().build(); // 如果找不到，回傳 404 Not Found
-        }
-    }
+    // @DeleteMapping("/{id}")
+    // public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
+    //     // 先檢查是否存在，這樣才能給出更精確的回應
+    //     if (productService.findByIdForForm(id).isPresent()) {
+    //         productService.deleteById(id);
+    //         return ResponseEntity.noContent().build(); // 回傳 204 No Content，表示成功刪除
+    //     } else {
+    //         return ResponseEntity.notFound().build(); // 如果找不到，回傳 404 Not Found
+    //     }
+    // }
 }

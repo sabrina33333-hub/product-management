@@ -115,12 +115,18 @@ public class ProductViewController {
 }
 
 
-    // 4. 【保留】處理刪除商品的請求
+    // 4. 處理商品下架的請求
     @PostMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable("id") Integer id) {
-        logger.info("開始處理刪除商品請求，ID：{}", id);
-        productService.deleteById(id);
+    public String softDeleteProduct(@PathVariable Integer id) {
+        productService.softDeleteProduct(id);
         return "redirect:/products";
     }
+
+    //5.新增處理重新上架請求
+    @PostMapping("/relist/{id}")
+    public String relistProduct(@PathVariable Integer id){
+       productService.relistProduct(id);
+       return"redirect:/products";    }
+
 
 }

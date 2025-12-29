@@ -12,7 +12,8 @@ public interface ProductService {
     List<Product> getProductsByCategoryId(Integer categoryId);
     //Optional<Product> findById(Integer id);
     
-    void deleteById(Integer id);
+    void softDeleteProduct(Integer id);
+    void relistProduct(Integer ProductId);
 
     Optional<Product> findByIdForForm(Integer id); 
     Product createProduct(ProductRequest productRequest);

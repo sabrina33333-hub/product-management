@@ -63,7 +63,7 @@ public class Product {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt; // 【已新增】更新時間欄位
 
-    
+    private boolean isActive = true;
 
 
     // 如果需要，可以自訂一個方便建立物件的建構子

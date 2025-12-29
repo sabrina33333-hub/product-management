@@ -17,6 +17,39 @@
         [x-cloak] { display: none !important; }
         body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
     </style>
+    <!-- 您可以將這段 style 放在 <head> 標籤中，或是一個外部 CSS 檔案 -->
+<style>
+    /* 用於已下架商品整行的樣式 */
+    .inactive-row {
+        background-color: #f8f9fa; /* 更淡的灰色 */
+        color: #6c757d; /* 文字也變灰 */
+    }
+
+    /* 狀態標籤的基礎樣式 */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 75%;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.375rem; /* rounded-md */
+        color: white;
+    }
+
+    /* 上架中 (綠色) */
+    .status-badge-active {
+        background-color: #10B981; /* Tailwind's green-500 */
+    }
+
+    /* 已下架 (灰色) */
+    .status-badge-inactive {
+        background-color: #6B7280; /* Tailwind's gray-500 */
+    }
+</style>
+
 </head>
 <body class="bg-gray-100">
 
