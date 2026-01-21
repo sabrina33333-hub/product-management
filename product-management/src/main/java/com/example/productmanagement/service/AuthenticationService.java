@@ -9,6 +9,10 @@ import com.example.productmanagement.repository.UserRepository;
 import com.example.productmanagement.repository.TokenRepository;
 import com.example.productmanagement.repository.VendorRepository; 
 import lombok.RequiredArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,10 +45,13 @@ public class AuthenticationService {
        
 
         var savedUser = userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
+        Map<String, Integer> a = new HashMap<>();
+        a.put("userId",savedUser.getUserId());
+        
+        var jwtToken = jwtService.generateToken(a,user);
         saveUserToken(savedUser, jwtToken);
 
-        // 注意：註冊時可能還沒有對應的 Vendor，所以這裡不回傳 vendorId 是合理的
+        
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .userId(savedUser.getUserId())
@@ -68,8 +75,8 @@ public class AuthenticationService {
 
         // 3. 【【【 執行反向查找！ 】】】
        
-        var vendorOpt = vendorRepository.findByUser(user);
-        Integer vendorId = vendorOpt.map(vendor -> Integer.valueOf(vendor.getVendorId())).orElse(null);
+       // var vendorOpt = vendorRepository.findByUser(user);
+        //Integer vendorId = vendorOpt.map(vendor -> Integer.valueOf(vendor.getVendorId())).orElse(null);
          
         // 4. 生成/更新 Token (保持不變)
         var jwtToken = jwtService.generateToken(user);
@@ -79,8 +86,7 @@ public class AuthenticationService {
         // 5. 【【【 回傳包含 vendorId 的最終情報！ 】】】
         return AuthenticationResponse.builder()
                 .token(jwtToken)
-                .userId(user.getUserId()) // 回傳使用者 ID
-                .vendorId(vendorId) // <<<< 從查找到的 vendor 物件中，取得 vendorId！
+                .userId(user.getUserId()) // 回傳使用者 ID                
                 .build();
     }
 
@@ -103,7 +109,7 @@ public class AuthenticationService {
         validUserTokens.forEach(token -> {
             token.setExpired(true);
             token.setRevoked(true);
-        });
+        });  
         tokenRepository.saveAll(validUserTokens);
     }
 }

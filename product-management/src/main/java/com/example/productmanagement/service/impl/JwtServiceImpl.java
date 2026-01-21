@@ -28,6 +28,12 @@ public class JwtServiceImpl implements JwtService {
     private long jwtExpiration;
 
     @Override
+    public Integer extractUserId(String token) {
+        Integer userId = extractClaim(token, claims -> claims.get("userid", Integer.class));
+        return userId;
+    }
+
+    @Override
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -38,7 +44,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateToken(Map<String, Integer> extraClaims, UserDetails userDetails) {
         return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
@@ -54,7 +60,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private String buildToken(
-            Map<String, Object> extraClaims,
+            Map<String, Integer> extraClaims,
             UserDetails userDetails,
             long expiration
     ) {

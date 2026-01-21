@@ -63,6 +63,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    public UserDetails loadUserByUserId(Integer userId) throws UsernameNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
+
+        return user;
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::toUserResponse)

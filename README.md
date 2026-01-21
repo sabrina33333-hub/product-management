@@ -4,22 +4,29 @@
 
 ## ✨ 主要功能 (Features)
 
--   **📊 儀表板 (Dashboard)**: 視覺化呈現關鍵業務指標 (KPIs)，如總收入、訂單數、新客戶等。
+-   **📊 儀表板 (Dashboard)**: 視覺化呈現關鍵業務指標 (KPIs)，如總收入、訂單數、熱銷品等。
 -   **📦 商品管理 (Product Management)**:
-    -   完整的商品 CRUD (新增、讀取、更新、刪除) 功能。
+    -   完整的商品  (新增、讀取、更新、上下架) 功能。
     -   支援商品分類、庫存和價格管理。
-    -   商品列表搜尋與分頁。
+    
 -   **🛒 訂單管理 (Order Management)**:
     -   查看所有訂單列表與狀態。
     -   檢視單一訂單的詳細資訊，包括商品項目和客戶資料。
     -   訂單狀態追蹤。
--   **👥 客戶管理 (Customer Management)**: 統一管理客戶資料。
--   **🏭 供應商管理 (Vendor Management)**: 管理供應商資訊。
+    -   快速手動修改訂單狀態。
+    -   手動新增訂單（可抓取訂單商品、金額）。
+
+-   **👥 客戶管理 (Customer Management)**: 
+    -   統一管理客戶資料。
+    -   分頁內可完整追蹤歷史訂單、購買偏好分類。
+    -   可關聯訂單詳情。
+
 -   **🔐 使用者認證 (Authentication)**:
     -   基於 JWT (JSON Web Token) 的安全登入/登出機制。
     -   區分 API 和 Web 視圖的安全性設定。
--   **📈 收益分析 (Analytics)**: 提供基於銷售數據的收益、成本和利潤分析報告。
-
+-   **📈 收益分析 (Analytics)**:
+    -   提供基於銷售數據的收益、成本和利潤分析報告。
+    -   提供日期、訂單狀態篩選
 ## 🛠️ 技術棧 (Technology Stack)
 
 -   **後端 (Backend)**:
@@ -66,10 +73,9 @@
 ### 2. 複製專案
 
 ```bash
-git clone https://your-repository-url.git
-cd your-project-directory
+git clone https://github.com/sabrina33333-hub/product-management/tree/main/product-management
+cd product-management
 ```
-
 ### 3. 資料庫設定
 
 1.  登入您的 MySQL 資料庫。
@@ -111,7 +117,7 @@ mvn spring-boot:run
 ### 6. 訪問系統
 
 -   **登入頁面**: [http://localhost:8080/login](http://localhost:8080/login)
--   **主儀表板**: [http://localhost:8080/main](http://localhost:8080/main) (登入後)
+-   **主儀表板**: [http://localhost:8080/dashdord](http://localhost:8080/main) (登入後)
 
 ## 📁 專案結構
 
