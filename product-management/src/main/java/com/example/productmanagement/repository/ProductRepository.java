@@ -15,9 +15,17 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
 
     Optional<Product> findByName(String name);
+    boolean existsByName(String name);
     List<Product> findByNameContainingIgnoreCase(String keyword);
     List<Product> findByPriceLessThan(BigDecimal price);
     List<Product> findByStockQuantityEquals(Integer stockQuantity);
+
+    
+     List<Product> findByCategoryName(String categoryName);
+
+   
+    @Query("SELECT p FROM Product p WHERE p.category.name = :categoryName")
+    List<Product> findByCustomCategory(@Param("categoryName") String categoryName);
     
     @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId")
     List<Product> findByCategoryId(@Param("categoryId") Integer categoryId);

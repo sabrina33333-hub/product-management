@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,15 +26,10 @@ public class Vendor {
     @Column(name = "vendor_id")
     private Integer vendorId; // 習慣上常命名為 id
 
-    /**
-     * 【已修正 & 最佳實踐】與 User 實體建立一對一關聯。
-     * fetch = FetchType.LAZY: 延遲載入，提升效能。
-     * optional = false: 表示 Vendor 必須關聯一個 User，在資料庫層面 user_id 不可為 null。
-     * @JoinColumn: 指定外鍵欄位。
-     */
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
-    private User user; // 假設您有一個 User 實體
+    
+    // @OneToOne(fetch = FetchType.LAZY, optional = false)
+    // @JoinColumn(name = "user_id", unique = true, nullable = false)
+    // private User user; // 假設您有一個 User 實體
 
     @Column(name = "store_name", nullable = false)
     private String storeName;

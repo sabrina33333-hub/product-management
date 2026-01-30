@@ -1,6 +1,7 @@
 package com.example.productmanagement.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,19 +25,19 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)//自動遞增
     @Column(name = "product_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id", nullable = false)
-    private Vendor vendor; // 【已新增】對應 vendor_id 的欄位
+    private Vendor vendor; 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category; 
     
-
+    @NotBlank(message = "產品名稱不得為空")
     @Column(name = "name", nullable = false)
     private String name;
 

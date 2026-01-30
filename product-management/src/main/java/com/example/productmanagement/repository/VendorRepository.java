@@ -4,6 +4,8 @@ import com.example.productmanagement.entity.User; // <<<< 【注意】請確保�
 import com.example.productmanagement.entity.Vendor;
 import com.example.productmanagement.model.VendorStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,22 +14,28 @@ import java.util.Optional;
 @Repository
 public interface VendorRepository extends JpaRepository<Vendor, Integer> {
 
-    // --- 您原有的方法 (保持不變) ---
+    
     Optional<Vendor> findByStoreName(String name);
     List<Vendor> findByStatus(VendorStatus status);
     boolean existsByVendorId(Long vendorId);
+    //Optional<Vendor> findByUser(User user);
 
+    //檢查店鋪名稱是否已存在
+    boolean existsByStoreName(String storeName);
+    
+    //根據聯絡人查找供應商
+    Optional<Vendor> findByContactPerson(String contactPerson);
 
-    // --- 【【【 請在這裡加入這個關鍵方法！ 】】】 ---
-    /**
-     * 根據關聯的 User 物件來查找 Vendor。
-     * Spring Data JPA 非常聰明，它會自動解析這個方法名稱，
-     * 並生成類似 "SELECT v FROM Vendor v WHERE v.user = ?1" 的查詢。
-     *
-     * @param user 要查找的 User 實體
-     * @return 一個可能包含對應 Vendor 的 Optional 物件
-     */
-    Optional<Vendor> findByUser(User user);
-    // --- 【【【 新增結束 】】】 ---
+    //查找活躍的供應商
+    @Query("SELECT v FROM Vendor v WHERE v.status = 'ACTIVE'")
+    List<Vendor> findActiveVendors();
+    
+    //根據店鋪名稱模糊查詢
+    @Query("SELECT v FROM Vendor v WHERE v.storeName LIKE %:name%")
+    List<Vendor> findByStoreNameContaining(@Param("name") String name);
+    
+    //檢查供應商是否有關聯的產品 (用於刪除驗證)
+    @Query("SELECT COUNT(p) > 0 FROM Product p WHERE p.vendor.vendorId = :vendorId")
+    boolean hasProducts(@Param("vendorId") Integer vendorId);
 
 }

@@ -31,7 +31,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private static final int LOW_STOCK_THRESHOLD = 10; // 低庫存門檻值
     private static final int TOP_PRODUCTS_LIMIT = 5;   // 熱銷商品排行顯示數量
-    private static final int SALES_CHART_DAYS = 7; // 顯示過去 7 天的銷售趨勢
+    //private static final int SALES_CHART_DAYS = 7; // 顯示過去 7 天的銷售趨勢
     private static final ZoneId SERVER_ZONE_ID = ZoneId.of("Asia/Taipei");
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;

@@ -8,6 +8,7 @@ import com.example.productmanagement.entity.Vendor;
 import com.example.productmanagement.repository.CategoryRepository;
 import com.example.productmanagement.repository.ProductRepository;
 import com.example.productmanagement.repository.VendorRepository;
+import com.example.productmanagement.service.ExcelService;
 import com.example.productmanagement.service.ProductService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -18,8 +19,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,14 +38,9 @@ public class ProductServiceImpl implements ProductService {
     private final Integer LOW_STOCK_THRESHOLD = 10;
     private final CategoryRepository categoryRepository;
     private final VendorRepository vendorRepository;
-
-//    // @Autowired
-//     public ProductServiceImpl(ProductRepository productRepository) {
-//         this.productRepository = productRepository;
-        
-//     }
+    private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     
-    
+    private final ExcelService excelService;
 
     @Override
     @Transactional(readOnly = true) // 查詢操作，設為 readOnly 可優化效能
@@ -130,16 +131,6 @@ public class ProductServiceImpl implements ProductService {
     }
     
     
-    
-    // private void checkStockLevel(Product product) {
-    //     if (product.getStockQuantity() != null && product.getStockQuantity() < LOW_STOCK_THRESHOLD) {
-    //         log.warn("庫存警告：商品 '{}' (ID: {}) 的庫存僅剩 {}，已低於安全閾值 {}！",
-    //                 product.getName(),
-    //                 product.getId(),
-    //                 product.getStockQuantity(),
-    //                 LOW_STOCK_THRESHOLD);
-    //     }
-    // }
 
     
 
@@ -149,6 +140,88 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByCategoryId(categoryId);
     }
 
-
     
+    /**
+     * 上傳並處理 Excel 檔案
+     */
+    public UploadResult uploadExcelFile(MultipartFile file) throws IOException {
+        logger.info("開始處理 Excel 檔案上傳: {}", file.getOriginalFilename());
+        
+        // 基本驗證
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("檔案不能為空");
+        }
+        
+        if (!excelService.isValidExcelFile(file)) {
+            throw new IllegalArgumentException("只接受 Excel 檔案格式");
+        }
+        
+        // 解析 Excel 檔案
+        List<Product> products = excelService.parseExcelFile(file);
+        
+        if (products.isEmpty()) {
+            throw new IllegalArgumentException("Excel 檔案中沒有有效的資料");
+        }
+        
+        // 批次儲存產品
+        List<String> errors = new ArrayList<>();
+        List<Product> savedProducts = new ArrayList<>();
+        int successCount = 0;
+        
+        for (Product product : products) {
+            try {
+                // 檢查產品名稱是否已存在
+                if (productRepository.existsByName(product.getName())) {
+                    errors.add("產品名稱 '" + product.getName() + "' 已存在");
+                    continue;
+                }
+                
+                Product savedProduct = productRepository.save(product);
+                savedProducts.add(savedProduct);
+                successCount++;
+                
+            } catch (Exception e) {
+                logger.error("儲存產品失敗: {}", e.getMessage());
+                errors.add("儲存產品 '" + product.getName() + "' 失敗: " + e.getMessage());
+            }
+        }
+        
+        logger.info("Excel 檔案處理完成，成功儲存 {} 筆記錄", successCount);
+        
+        return new UploadResult(successCount, errors, 
+            savedProducts.subList(0, Math.min(5, savedProducts.size())));
+    }
+    
+    // UploadResult 內部類別...
+    public static class UploadResult {
+        private int successCount;
+        private List<String> errors;
+        private List<Product> preview;
+        
+        public UploadResult(int successCount, List<String> errors, List<Product> preview) {
+            this.successCount = successCount;
+            this.errors = errors;
+            this.preview = preview;
+        }
+        
+        // Getters
+        public int getSuccessCount() { return successCount; }
+        public List<String> getErrors() { return errors; }
+        public List<Product> getPreview() { return preview; }
+        public boolean hasErrors() { return errors != null && !errors.isEmpty(); }
+        
+        // ✅ 新增這個方法來解決編譯錯誤
+        public int getErrorCount() {
+            return errors.size();
+        }
+        
+        // ✅ 新增一些有用的方法
+        public int getTotalProcessed() {
+            return successCount + getErrorCount();
+        }
+    }
+
+      
 }
+    
+

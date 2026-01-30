@@ -2,8 +2,13 @@ package com.example.productmanagement.service;
 
 import com.example.productmanagement.dto.request.ProductRequest;
 import com.example.productmanagement.entity.Product;
+import com.example.productmanagement.service.impl.ProductServiceImpl.UploadResult;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProductService {
 
@@ -18,6 +23,6 @@ public interface ProductService {
     Optional<Product> findByIdForForm(Integer id); 
     Product createProduct(ProductRequest productRequest);
     Product updateProduct(Integer id, ProductRequest productRequest);
-    
-
+    UploadResult uploadExcelFile(MultipartFile file)throws IOException;
+   
 }
