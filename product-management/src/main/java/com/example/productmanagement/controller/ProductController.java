@@ -215,7 +215,7 @@ public ResponseEntity<byte[]> downloadTemplate() {
         // 創建標題行
         Row headerRow = sheet.createRow(0);
         String[] headers = {"name", "price", "cost", "description", "categoryName", "stockQuantity", "vendorName"};
-        String[] headerNames = {"商品名稱", "售價", "成本", "商品描述", "類別名稱", "庫存數量", "供應商名稱"};
+        String[] headerNames = {"商品名稱", "售價", "成本", "商品描述", "類別名稱", "進貨數量", "供應商名稱"};
         
         // 設置標題
         for (int i = 0; i < headers.length; i++) {
